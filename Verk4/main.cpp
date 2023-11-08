@@ -28,6 +28,8 @@ BME280 bme;
 
 // Global variables and data structures
 BME280::BME_Measurement_t bme_measurement_in;
+BME280::BME_Measurement_t bme_measurement_out;
+queue_t bme_queue;
 
 // Forward declarations
 
@@ -47,6 +49,7 @@ void core_1_entry() {
         if (bme.read(&bme_measurement_in)) {
             // Push the measurement to core 0 for displaying
             /*ADD YOUR CODE HERE*/
+            queue_add_blocking(&bme_queue, &bme_measurement_in);
         }
         sleep_ms(10);
     }
@@ -55,6 +58,7 @@ void core_1_entry() {
 void init() {
     stdio_init_all();
     sleep_ms(5000);
+    queue_init(&bme_queue, sizeof(BME280::BME_Measurement_t), 2);
     printf("Launching core 1... ");
     multicore_launch_core1(core_1_entry);
     printf("Launched.\n");
@@ -63,6 +67,10 @@ void init() {
 void loop() {
     // Receive data from core 1 and display
     /*ADD YOUR CODE HERE*/
+    queue_remove_blocking(&bme_queue, &bme_measurement_out);
+    printf("        Hitastig: %.2f °C\n", bme_measurement_out.temperature);
+    printf("  Loftþrýstingur: %.2f hPa\n", bme_measurement_out.temperature);
+    printf("        Rakastig: %.2f%%\n\n", bme_measurement_out.temperature);
     sleep_ms(10);
 }
 
